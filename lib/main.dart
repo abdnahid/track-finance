@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import './widgets/expenses/addNewTransaction.dart';
-import './widgets/expenses/transactionList.dart';
+import 'widgets/chart.dart';
+import 'widgets/addNewTransaction.dart';
+import 'widgets/transactionList.dart';
 import './models/transaction.dart';
 
 void main() => runApp(MyApp());
@@ -9,7 +10,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter App',
+      title: 'Track Finance',
+      theme: ThemeData(
+        primarySwatch: Colors.cyan,
+        fontFamily: 'Quicksand',
+      ),
       home: MyHomePage(),
     );
   }
@@ -33,12 +38,12 @@ class _MyHomePageState extends State<MyHomePage> {
     Transaction(
         id: 't5', title: 'phone bill', amount: 12.62, date: DateTime.now()),
   ];
-  void addTransaction(String txTitle, double txAmount) {
+  void addTransaction(String txTitle, double txAmount, DateTime txDate) {
     final newTx = Transaction(
         id: DateTime.now().toString(),
         title: txTitle,
         amount: txAmount,
-        date: DateTime.now());
+        date: txDate);
     setState(() {
       _transactions.add(newTx);
     });
@@ -52,19 +57,31 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
+  void handleDelete(String id) {
+    setState(() {
+      _transactions.removeWhere((tx) => tx.id == id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Flutter App'),
-        actions: [
-          IconButton(
-              onPressed: () {
-                viewAddTxModal(context);
-              },
-              icon: Icon(Icons.add_box_rounded))
-        ],
+    final appBar = AppBar(
+      title: Text(
+        'FinTrack',
+        style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Quicksand',
+            fontWeight: FontWeight.bold,
+            fontSize: 25),
       ),
+      actions: [
+        IconButton(
+            onPressed: () => viewAddTxModal(context),
+            icon: Icon(Icons.add_box_rounded))
+      ],
+    );
+    return Scaffold(
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Container(
           color: const Color(0xFF0a192f),
@@ -72,18 +89,25 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Card(
-                child: Container(
-                  child: Text("Expense chart"),
-                  width: double.infinity,
-                  margin: EdgeInsets.all(10),
-                  padding: EdgeInsets.all(10),
-                  color: Colors.orange[100],
+              Container(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.3,
+                child: Chart(
+                  recentTransactions: _transactions,
                 ),
               ),
-              TransactionList(
-                transactions: _transactions,
-              )
+              Container(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.7,
+                child: TransactionList(
+                  transactions: _transactions,
+                  deleteTx: handleDelete,
+                ),
+              ),
             ],
           ),
         ),
